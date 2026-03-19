@@ -51,7 +51,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useUrlValidation } from '@/hooks/use-url-validation'
 import { logger } from '@/libs/logger'
 import { minInterval } from './home.schema'
-import { useHome } from './useHome'
+import { useHome } from './use-home'
 
 const SortableItem = memo(function SortableItem(props: { id: string; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: props.id })

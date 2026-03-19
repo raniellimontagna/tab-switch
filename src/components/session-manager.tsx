@@ -21,14 +21,14 @@ interface SessionManagerProps {
   onDeleteSession: (sessionId: string) => Promise<void>
 }
 
-export function SessionManager({
+export const SessionManager = ({
   sessions,
   currentSessionId,
   onSwitchSession,
   onCreateSession,
   onUpdateSessionName,
   onDeleteSession,
-}: SessionManagerProps) {
+}: SessionManagerProps): React.ReactNode => {
   const { t } = useTranslation()
   const { toast } = useToast()
   const [isCreating, setIsCreating] = useState(false)

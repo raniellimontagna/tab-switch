@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { TabSchema } from '../home.schema'
-import { useHome } from '../useHome'
+import { useHome } from '../use-home'
 
 // Mock dependencies
 vi.mock('@/hooks/use-sessions', () => ({

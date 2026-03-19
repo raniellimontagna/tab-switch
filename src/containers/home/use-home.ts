@@ -30,7 +30,7 @@ import { minInterval, NewTabSchema, newTabSchema, TabSchema } from './home.schem
  *   - handleCheckedChange: Switch toggle handler
  *   - handlePauseResume: Pause/resume rotation handler
  */
-export function useHome() {
+export const useHome = () => {
   const { t } = useTranslation()
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
@@ -98,7 +98,7 @@ export function useHome() {
    * @param tabId - ID of the tab to update
    * @param updates - Partial tab data to update
    */
-  async function updateTab(tabId: number, updates: Partial<Omit<TabSchema, 'id'>>) {
+  const updateTab = async (tabId: number, updates: Partial<Omit<TabSchema, 'id'>>) => {
     setIsUpdating(tabId)
     try {
       // Find the tab to update
@@ -169,7 +169,7 @@ export function useHome() {
    *
    * @param data - Form data containing name, url, and interval
    */
-  async function handleSubmit(data: NewTabSchema) {
+  const handleSubmit = async (data: NewTabSchema) => {
     setIsSaving(true)
     try {
       // Ensure interval is a number

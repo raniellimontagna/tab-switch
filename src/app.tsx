@@ -2,8 +2,8 @@ import './styles/globals.css'
 
 import { lazy, Suspense } from 'react'
 import { Skeleton } from '@/components'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { Profiler } from '@/components/Profiler'
+import { ErrorBoundary } from '@/components/error-boundary'
+import { Profiler } from '@/components/profiler'
 
 // Lazy load non-critical components for better initial bundle size
 // Note: ErrorBoundary is kept synchronous as it needs to catch errors during lazy loading
@@ -13,7 +13,7 @@ const Toaster = lazy(() =>
   import('@/components/ui/toaster').then((module) => ({ default: module.Toaster }))
 )
 
-function App() {
+const App = (): React.ReactNode => {
   return (
     <Profiler id="App">
       <ErrorBoundary>
@@ -36,4 +36,4 @@ function App() {
   )
 }
 
-export default App
+export { App }

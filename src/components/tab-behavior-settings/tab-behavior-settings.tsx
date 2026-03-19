@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import type { TabBehavior } from '@/hooks/use-tab-behavior'
 import { useTabBehavior } from '@/hooks/use-tab-behavior'
 
-export function TabBehaviorSettings() {
+export const TabBehaviorSettings = (): React.ReactNode => {
   const { t } = useTranslation()
   const { tabBehavior, setTabBehavior, isLoading } = useTabBehavior()
 

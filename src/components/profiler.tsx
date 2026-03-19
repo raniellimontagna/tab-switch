@@ -14,7 +14,7 @@ interface ProfilerProps {
  * @param children - Component tree to profile
  * @param onRender - Optional callback to log render metrics
  */
-export function Profiler({ id, children, onRender }: ProfilerProps) {
+export const Profiler = ({ id, children, onRender }: ProfilerProps): React.ReactNode => {
   // Only enable profiling in development
   if (import.meta.env.DEV) {
     const defaultOnRender: ProfilerOnRenderCallback = (
