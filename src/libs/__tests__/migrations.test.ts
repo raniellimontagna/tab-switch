@@ -27,6 +27,15 @@ vi.mock('@/utils/url', () => ({
       return url
     }
   }),
+  generateNameFromUrl: vi.fn((url: string) => {
+    try {
+      const parsed = new URL(url.startsWith('http') ? url : `https://${url}`)
+      const hostname = parsed.hostname.replace(/^www\./, '')
+      return hostname.charAt(0).toUpperCase() + hostname.slice(1)
+    } catch {
+      return ''
+    }
+  }),
 }))
 
 vi.mock('../logger', () => ({

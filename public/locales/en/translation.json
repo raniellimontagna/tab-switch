@@ -17,7 +17,11 @@
     "delete": "Delete",
     "save": "Save",
     "saving": "Saving...",
-    "drag": "Drag handle"
+    "drag": "Drag handle",
+    "edit": "Edit",
+    "update": "Update",
+    "updating": "Updating...",
+    "cancel": "Cancel"
   },
   "keyboard": {
     "shortcut": "Shortcut"
@@ -84,6 +88,14 @@
   "toastSaveSuccess": {
     "title": "Tab saved",
     "description": "The tab has been saved successfully."
+  },
+  "toastUpdateSuccess": {
+    "title": "Tab updated",
+    "description": "The tab has been updated successfully."
+  },
+  "toastUpdateError": {
+    "title": "Update failed",
+    "description": "An error occurred while updating the tab. Please try again."
   },
   "toastSaveError": {
     "title": "Save failed",

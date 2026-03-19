@@ -15,7 +15,7 @@ import { logger } from '@/libs/logger'
 export async function showNotification(
   title: string,
   message: string,
-  type: chrome.notifications.TemplateType = 'basic',
+  type: chrome.notifications.TemplateType = chrome.notifications.TemplateType.BASIC,
   iconUrl?: string
 ): Promise<string | null> {
   try {
@@ -50,7 +50,7 @@ export async function notifyRotationStarted(tabsCount: number): Promise<void> {
   await showNotification(
     'Rotation Started',
     `Tab rotation started with ${tabsCount} tab${tabsCount !== 1 ? 's' : ''}`,
-    'basic'
+    chrome.notifications.TemplateType.BASIC
   )
 }
 
@@ -58,19 +58,31 @@ export async function notifyRotationStarted(tabsCount: number): Promise<void> {
  * Shows a notification when rotation stops
  */
 export async function notifyRotationStopped(): Promise<void> {
-  await showNotification('Rotation Stopped', 'Tab rotation has been stopped', 'basic')
+  await showNotification(
+    'Rotation Stopped',
+    'Tab rotation has been stopped',
+    chrome.notifications.TemplateType.BASIC
+  )
 }
 
 /**
  * Shows a notification when rotation is paused
  */
 export async function notifyRotationPaused(): Promise<void> {
-  await showNotification('Rotation Paused', 'Tab rotation has been paused', 'basic')
+  await showNotification(
+    'Rotation Paused',
+    'Tab rotation has been paused',
+    chrome.notifications.TemplateType.BASIC
+  )
 }
 
 /**
  * Shows a notification when rotation is resumed
  */
 export async function notifyRotationResumed(): Promise<void> {
-  await showNotification('Rotation Resumed', 'Tab rotation has been resumed', 'basic')
+  await showNotification(
+    'Rotation Resumed',
+    'Tab rotation has been resumed',
+    chrome.notifications.TemplateType.BASIC
+  )
 }

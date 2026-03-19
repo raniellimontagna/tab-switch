@@ -5,6 +5,7 @@ import type {
   ResumeRotationMessage,
   StartRotationMessage,
 } from '@/@types/messages'
+import * as storage from '@/libs/storage'
 import * as tabManagement from '@/libs/tab-management'
 import * as tabRotation from '@/libs/tab-rotation'
 
@@ -12,6 +13,13 @@ import * as tabRotation from '@/libs/tab-rotation'
 vi.mock('@/libs/tab-management', () => ({
   createTabs: vi.fn(),
   removeOtherTabs: vi.fn(),
+}))
+
+vi.mock('@/libs/storage', () => ({
+  STORAGE_KEYS: {
+    TAB_BEHAVIOR: 'tabBehavior',
+  },
+  getStorageItem: vi.fn(),
 }))
 
 vi.mock('@/libs/tab-rotation', () => ({
@@ -43,7 +51,7 @@ const mockChromeRuntime = {
   },
 }
 
-global.chrome = {
+globalThis.chrome = {
   runtime: mockChromeRuntime as unknown as typeof chrome.runtime,
   tabs: {
     create: vi.fn(),
@@ -58,6 +66,7 @@ await import('../index')
 
 const mockCreateTabs = vi.mocked(tabManagement.createTabs)
 const mockRemoveOtherTabs = vi.mocked(tabManagement.removeOtherTabs)
+const mockGetStorageItem = vi.mocked(storage.getStorageItem)
 const mockStartRotation = vi.mocked(tabRotation.startRotation)
 const mockStopRotation = vi.mocked(tabRotation.stopRotation)
 const mockPauseRotation = vi.mocked(tabRotation.pauseRotation)
@@ -74,6 +83,7 @@ describe('Background Script', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockSendResponse.mockClear()
+    mockGetStorageItem.mockResolvedValue('close-others')
   })
 
   describe('Start rotation message', () => {

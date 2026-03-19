@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { FormProvider, useForm } from 'react-hook-form'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
-import { CustomInput } from '../customInput/customInput'
+import { CustomInput } from '../custom-input/custom-input'
 
 // Mock sanitize functions
 vi.mock('@/utils', async () => {

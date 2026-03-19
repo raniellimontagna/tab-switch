@@ -1,6 +1,6 @@
 import { Slot } from '@radix-ui/react-slot'
+import type { IconProps } from '@solar-icons/react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { LucideProps } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '@/utils'
@@ -37,7 +37,7 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  startIcon?: React.ForwardRefExoticComponent<LucideProps & React.RefAttributes<SVGSVGElement>>
+  startIcon?: React.ComponentType<IconProps>
   asChild?: boolean
 }
 

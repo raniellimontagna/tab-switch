@@ -3,13 +3,13 @@
  * Allows users to choose how existing tabs are handled when starting rotation
  */
 
-import { Settings2 } from 'lucide-react'
+import { Settings } from '@solar-icons/react'
 import { useTranslation } from 'react-i18next'
 import { Label } from '@/components/ui/label'
 import type { TabBehavior } from '@/hooks/use-tab-behavior'
 import { useTabBehavior } from '@/hooks/use-tab-behavior'
 
-export function TabBehaviorSettings() {
+export const TabBehaviorSettings = (): React.ReactNode => {
   const { t } = useTranslation()
   const { tabBehavior, setTabBehavior, isLoading } = useTabBehavior()
 
@@ -33,7 +33,7 @@ export function TabBehaviorSettings() {
   return (
     <div className="space-y-3 p-4 border rounded-lg bg-card">
       <div className="flex items-start gap-2">
-        <Settings2 className="w-4 h-4 mt-0.5 text-muted-foreground" />
+        <Settings className="w-4 h-4 mt-0.5 text-muted-foreground" />
         <div className="flex-1">
           <Label className="text-sm font-semibold">{t('tabBehavior.title')}</Label>
           <p className="text-xs text-muted-foreground mt-1">{t('tabBehavior.description')}</p>

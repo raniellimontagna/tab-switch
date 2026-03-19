@@ -3,7 +3,7 @@
  * Allows creating, switching, renaming, and deleting sessions
  */
 
-import { Edit2, Plus, Trash2, X } from 'lucide-react'
+import { AddCircle, CloseSquare, PaperBin, Pen2 } from '@solar-icons/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -21,14 +21,14 @@ interface SessionManagerProps {
   onDeleteSession: (sessionId: string) => Promise<void>
 }
 
-export function SessionManager({
+export const SessionManager = ({
   sessions,
   currentSessionId,
   onSwitchSession,
   onCreateSession,
   onUpdateSessionName,
   onDeleteSession,
-}: SessionManagerProps) {
+}: SessionManagerProps): React.ReactNode => {
   const { t } = useTranslation()
   const { toast } = useToast()
   const [isCreating, setIsCreating] = useState(false)
@@ -133,7 +133,7 @@ export function SessionManager({
             onClick={() => setIsCreating(true)}
             className="focus:ring-2 focus:ring-offset-2"
           >
-            <Plus size={UI.ICON_SIZE} className="mr-1" aria-hidden="true" />
+            <AddCircle size={UI.ICON_SIZE} className="mr-1" aria-hidden="true" />
             {t('session.create')}
           </Button>
         )}
@@ -174,7 +174,7 @@ export function SessionManager({
             }}
             className="focus:ring-2 focus:ring-offset-2"
           >
-            <X size={UI.ICON_SIZE} aria-hidden="true" />
+            <CloseSquare size={UI.ICON_SIZE} aria-hidden="true" />
           </Button>
         </div>
       )}
@@ -227,7 +227,7 @@ export function SessionManager({
                     }}
                     className="focus:ring-2 focus:ring-offset-2"
                   >
-                    <X size={UI.ICON_SIZE} aria-hidden="true" />
+                    <CloseSquare size={UI.ICON_SIZE} aria-hidden="true" />
                   </Button>
                 </>
               ) : (
@@ -261,7 +261,7 @@ export function SessionManager({
                     className="focus:ring-2 focus:ring-offset-2"
                     aria-label={t('session.edit', { name: session.name })}
                   >
-                    <Edit2 size={UI.ICON_SIZE} aria-hidden="true" />
+                    <Pen2 size={UI.ICON_SIZE} aria-hidden="true" />
                   </Button>
                   <Button
                     type="button"
@@ -278,7 +278,7 @@ export function SessionManager({
                         aria-hidden="true"
                       />
                     ) : (
-                      <Trash2 size={UI.ICON_SIZE} aria-hidden="true" />
+                      <PaperBin size={UI.ICON_SIZE} aria-hidden="true" />
                     )}
                   </Button>
                 </>

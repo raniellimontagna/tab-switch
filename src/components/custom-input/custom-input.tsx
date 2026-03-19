@@ -23,7 +23,7 @@ interface CustomInputProps<TFieldValues extends FieldValues = FieldValues>
   onInputChange?: (value: string) => void
 }
 
-export function CustomInput<TFieldValues extends FieldValues = FieldValues>({
+export const CustomInput = <TFieldValues extends FieldValues = FieldValues>({
   mask,
   name,
   label,
@@ -37,7 +37,7 @@ export function CustomInput<TFieldValues extends FieldValues = FieldValues>({
   endAdornment,
   onInputChange,
   ...rest
-}: CustomInputProps<TFieldValues>) {
+}: CustomInputProps<TFieldValues>): React.ReactNode => {
   const handleFormat = (value: string) => {
     if (mask) {
       return masks[mask].format(value)

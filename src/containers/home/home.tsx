@@ -2,23 +2,25 @@ import { closestCenter, DndContext } from '@dnd-kit/core'
 import { SortableContext, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
-  CheckCircle2,
-  FolderDown,
-  FolderUp,
-  Globe,
-  GripVertical,
-  Info,
-  Loader2,
+  CheckCircle,
+  CloseCircle,
+  CloseSquare,
+  Diskette,
+  Download,
+  Global,
+  InfoCircle,
   Moon,
+  PaperBin,
   Pause,
+  Pen,
   Play,
-  RotateCwSquare,
-  Save,
+  Refresh,
+  Reorder,
+  RestartSquare,
   Settings,
   Sun,
-  Trash2,
-  XCircle,
-} from 'lucide-react'
+  Upload,
+} from '@solar-icons/react'
 import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Logo from '@/assets/logo.svg'
@@ -45,9 +47,11 @@ import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 import { useLanguage } from '@/hooks/use-language'
 import { useTableKeyboardNavigation } from '@/hooks/use-table-keyboard-navigation'
 import { useTheme } from '@/hooks/use-theme'
+import { useToast } from '@/hooks/use-toast'
 import { useUrlValidation } from '@/hooks/use-url-validation'
+import { logger } from '@/libs/logger'
 import { minInterval } from './home.schema'
-import { useHome } from './useHome'
+import { useHome } from './use-home'
 
 const SortableItem = memo(function SortableItem(props: { id: string; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: props.id })
@@ -81,11 +85,13 @@ function HomeComponent() {
     isPaused,
     isLoading,
     isSaving,
+    isUpdating,
     isDeleting,
     isReordering,
     exportTabs,
     importFromPaste,
     handleSubmit,
+    updateTab,
     handleDragEnd,
     handleCheckedChange,
     handlePauseResume,
@@ -104,8 +110,11 @@ function HomeComponent() {
   const [isDragging, setIsDragging] = useState(false)
   const [showPasteModal, setShowPasteModal] = useState(false)
   const [pasteContent, setPasteContent] = useState('')
+  const [editingTabId, setEditingTabId] = useState<number | null>(null)
+  const [editingInterval, setEditingInterval] = useState<string>('')
 
   const { t } = useTranslation()
+  const { toast } = useToast()
   const { effectiveTheme, toggleTheme, mounted } = useTheme()
   const { currentLanguage, toggleLanguage, mounted: languageMounted } = useLanguage()
   const [showSessionManager, setShowSessionManager] = useState(false)
@@ -129,6 +138,42 @@ function HomeComponent() {
     columnCount: 5,
     enabled: !isLoading && tabs.length > 0,
   })
+
+  // Handle edit interval
+  const handleEditInterval = useCallback((tabId: number, currentInterval: number) => {
+    setEditingTabId(tabId)
+    setEditingInterval(currentInterval.toString())
+  }, [])
+
+  // Handle cancel edit
+  const handleCancelEdit = useCallback(() => {
+    setEditingTabId(null)
+    setEditingInterval('')
+  }, [])
+
+  // Handle save interval
+  const handleSaveInterval = useCallback(
+    async (tabId: number) => {
+      const interval = parseInt(editingInterval, 10)
+      if (Number.isNaN(interval) || interval < minInterval) {
+        toast({
+          title: t('validation.interval.invalid_type'),
+          description: t('validation.interval.min', { minimum: minInterval }),
+          variant: 'destructive',
+        })
+        return
+      }
+
+      try {
+        await updateTab(tabId, { interval })
+        setEditingTabId(null)
+        setEditingInterval('')
+      } catch (error) {
+        logger.error('Error updating interval:', error)
+      }
+    },
+    [editingInterval, updateTab, toast, t]
+  )
 
   return (
     <Form {...methods}>
@@ -154,7 +199,7 @@ function HomeComponent() {
         {isDragging && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm border-4 border-dashed border-primary rounded-lg m-4">
             <div className="text-center">
-              <FolderUp size={48} className="mx-auto mb-4 text-primary" />
+              <Upload size={48} className="mx-auto mb-4 text-primary" />
               <p className="text-lg font-semibold">{t('import')}</p>
               <p className="text-sm text-muted-foreground">{t('dropFileHere')}</p>
             </div>
@@ -245,7 +290,7 @@ function HomeComponent() {
                   }
                   className="focus:ring-2 focus:ring-offset-2"
                 >
-                  <Globe size={UI.ICON_SIZE} aria-hidden="true" />
+                  <Global size={UI.ICON_SIZE} aria-hidden="true" />
                 </Button>
               )}
             </div>
@@ -286,8 +331,8 @@ function HomeComponent() {
                   <TableBody className="overflow-hidden">
                     {isLoading
                       ? // Skeleton loader while loading
-                        Array.from({ length: 3 }, (_, index) => (
-                          <TableRow key={`skeleton-${Date.now()}-${index}`}>
+                        ['skeleton-row-1', 'skeleton-row-2', 'skeleton-row-3'].map((rowKey) => (
+                          <TableRow key={rowKey}>
                             <TableCell>
                               <Skeleton className="h-4 w-4" />
                             </TableCell>
@@ -315,11 +360,7 @@ function HomeComponent() {
                               role="button"
                               tabIndex={0}
                             >
-                              <GripVertical
-                                size={UI.ICON_SIZE}
-                                className="ml-1"
-                                aria-hidden="true"
-                              />
+                              <Reorder size={UI.ICON_SIZE} className="ml-1" aria-hidden="true" />
                             </TableCell>
                             <TableCell className={isDeleting === tab.name ? 'opacity-50' : ''}>
                               {tab.name}
@@ -338,33 +379,110 @@ function HomeComponent() {
                               </a>
                             </TableCell>
                             <TableCell className={isDeleting === tab.name ? 'opacity-50' : ''}>
-                              {tab.interval} ms
+                              {editingTabId === tab.id ? (
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    ref={(input) => input?.focus()}
+                                    type="number"
+                                    value={editingInterval}
+                                    onChange={(e) => setEditingInterval(e.target.value)}
+                                    className="w-24 px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                                    min={minInterval}
+                                    step={INTERVAL.STEP}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        handleSaveInterval(tab.id)
+                                      } else if (e.key === 'Escape') {
+                                        handleCancelEdit()
+                                      }
+                                    }}
+                                  />
+                                  <span className="text-sm text-muted-foreground">ms</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <span>{tab.interval} ms</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEditInterval(tab.id, tab.interval)}
+                                    className="h-6 w-6 p-0"
+                                    aria-label={`${t('table.edit')} ${tab.name}`}
+                                  >
+                                    <Pen size={14} aria-hidden="true" />
+                                  </Button>
+                                </div>
+                              )}
                             </TableCell>
                             <TableCell className="position-relative">
-                              <Button
-                                id="delete"
-                                type="button"
-                                className="w-24 focus:ring-2 focus:ring-offset-2"
-                                variant="outline"
-                                disabled={isDeleting === tab.name}
-                                aria-label={`${t('table.delete')} ${tab.name}`}
-                                aria-busy={isDeleting === tab.name}
-                              >
-                                {isDeleting === tab.name ? (
-                                  <div
-                                    className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-                                    aria-hidden="true"
-                                  />
-                                ) : (
-                                  <Trash2
-                                    size={UI.ICON_SIZE}
-                                    style={{ minWidth: `${UI.ICON_SIZE}px` }}
-                                    className="mr-1"
-                                    aria-hidden="true"
-                                  />
-                                )}
-                                {t('table.delete')}
-                              </Button>
+                              {editingTabId === tab.id ? (
+                                <div className="flex gap-2">
+                                  <Button
+                                    type="button"
+                                    className="w-24 focus:ring-2 focus:ring-offset-2"
+                                    variant="default"
+                                    onClick={() => handleSaveInterval(tab.id)}
+                                    disabled={isUpdating === tab.id}
+                                    aria-label={`${t('table.update')} ${tab.name}`}
+                                  >
+                                    {isUpdating === tab.id ? (
+                                      <>
+                                        <div
+                                          className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+                                          aria-hidden="true"
+                                        />
+                                        {t('table.updating')}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Diskette
+                                          size={UI.ICON_SIZE}
+                                          style={{ minWidth: `${UI.ICON_SIZE}px` }}
+                                          className="mr-1"
+                                          aria-hidden="true"
+                                        />
+                                        {t('table.update')}
+                                      </>
+                                    )}
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleCancelEdit}
+                                    className="h-9 w-9 p-0"
+                                    aria-label={t('table.cancel')}
+                                  >
+                                    <CloseSquare size={UI.ICON_SIZE} aria-hidden="true" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  id="delete"
+                                  type="button"
+                                  className="w-24 focus:ring-2 focus:ring-offset-2"
+                                  variant="outline"
+                                  disabled={isDeleting === tab.name}
+                                  aria-label={`${t('table.delete')} ${tab.name}`}
+                                  aria-busy={isDeleting === tab.name}
+                                >
+                                  {isDeleting === tab.name ? (
+                                    <div
+                                      className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+                                      aria-hidden="true"
+                                    />
+                                  ) : (
+                                    <PaperBin
+                                      size={UI.ICON_SIZE}
+                                      style={{ minWidth: `${UI.ICON_SIZE}px` }}
+                                      className="mr-1"
+                                      aria-hidden="true"
+                                    />
+                                  )}
+                                  {t('table.delete')}
+                                </Button>
+                              )}
                             </TableCell>
                           </SortableItem>
                         ))}
@@ -374,7 +492,7 @@ function HomeComponent() {
               <TableBody>
                 <TableRow>
                   <TableCell className="align-top">
-                    <RotateCwSquare size={UI.ICON_SIZE} className="ml-1 mt-2.5" />
+                    <RestartSquare size={UI.ICON_SIZE} className="ml-1 mt-2.5" />
                   </TableCell>
                   <TableCell className="align-top">
                     <CustomInput
@@ -395,19 +513,19 @@ function HomeComponent() {
                             urlValue && urlValue.length > 0 ? (
                               <>
                                 {urlValidation.status === 'validating' && (
-                                  <Loader2
+                                  <Refresh
                                     size={16}
                                     className="animate-spin text-muted-foreground"
                                   />
                                 )}
                                 {urlValidation.status === 'valid' && (
-                                  <CheckCircle2 size={16} className="text-green-500" />
+                                  <CheckCircle size={16} className="text-green-500" />
                                 )}
                                 {urlValidation.status === 'invalid' && (
-                                  <XCircle size={16} className="text-red-500" />
+                                  <CloseCircle size={16} className="text-red-500" />
                                 )}
                                 {urlValidation.status === 'error' && (
-                                  <XCircle size={16} className="text-yellow-500" />
+                                  <CloseCircle size={16} className="text-yellow-500" />
                                 )}
                               </>
                             ) : undefined
@@ -473,7 +591,7 @@ function HomeComponent() {
                         </>
                       ) : (
                         <>
-                          <Save size={UI.ICON_SIZE} className="mr-1" aria-hidden="true" />
+                          <Diskette size={UI.ICON_SIZE} className="mr-1" aria-hidden="true" />
                           {t('table.save')}
                         </>
                       )}
@@ -495,7 +613,7 @@ function HomeComponent() {
             className="focus:ring-2 focus:ring-offset-2"
             title={t('importPasteHint')}
           >
-            <FolderUp size={UI.ICON_SIZE} className="mr-1" aria-hidden="true" />
+            <Upload size={UI.ICON_SIZE} className="mr-1" aria-hidden="true" />
             <p>{t('import')}</p>
           </Button>
           <Button
@@ -505,12 +623,12 @@ function HomeComponent() {
             aria-label={t('export')}
             className="focus:ring-2 focus:ring-offset-2"
           >
-            <FolderDown size={UI.ICON_SIZE} className="mr-1" aria-hidden="true" />
+            <Download size={UI.ICON_SIZE} className="mr-1" aria-hidden="true" />
             <p>{t('export')}</p>
           </Button>
         </div>
         <div className="flex items-center space-x-2 text-muted-foreground">
-          <Info size={UI.ICON_SIZE} />
+          <InfoCircle size={UI.ICON_SIZE} />
           <p className="text-sm">{t('infoOpen')}</p>
         </div>
       </div>

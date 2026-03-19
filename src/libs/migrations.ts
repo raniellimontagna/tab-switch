@@ -17,7 +17,7 @@ export const STORAGE_VERSION_KEY = 'dataVersion'
 
 // Legacy schemas for migration
 const legacyTabSchemaV0 = z.object({
-  id: z.union([z.number(), z.string()]),
+  id: z.union([z.number(), z.string()]).optional(),
   name: z.string().optional(),
   url: z.string(),
   interval: z.number().optional(),
@@ -45,7 +45,7 @@ function migrateTabsV0ToV1(legacyTabs: unknown): TabSchema[] {
       const parsed = legacyTabSchemaV0.parse(item)
 
       // Generate numeric ID if needed
-      const id =
+      let id =
         typeof parsed.id === 'number'
           ? parsed.id
           : typeof parsed.id === 'string'
@@ -54,14 +54,12 @@ function migrateTabsV0ToV1(legacyTabs: unknown): TabSchema[] {
 
       // Ensure unique IDs
       while (migrated.some((t) => t.id === id)) {
-        nextId++
+        id = nextId++
       }
 
       // Normalize and validate URL
-      let url = parsed.url || ''
-      if (url && isValidUrl(url)) {
-        url = normalizeUrl(url)
-      } else {
+      const url = normalizeUrl(parsed.url || '')
+      if (!url || !isValidUrl(url)) {
         logger.warn(`Skipping invalid URL: ${url}`)
         continue
       }
