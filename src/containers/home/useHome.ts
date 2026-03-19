@@ -34,6 +34,7 @@ export function useHome() {
   const { t } = useTranslation()
   const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
+  const [isUpdating, setIsUpdating] = useState<number | null>(null)
 
   // Use sessions hook for managing multiple rotation sessions
   const {
@@ -89,6 +90,78 @@ export function useHome() {
     },
     mode: 'onChange',
   })
+
+  /**
+   * Updates an existing tab
+   * Validates interval, updates tab data, and shows toast notification
+   *
+   * @param tabId - ID of the tab to update
+   * @param updates - Partial tab data to update
+   */
+  async function updateTab(tabId: number, updates: Partial<Omit<TabSchema, 'id'>>) {
+    setIsUpdating(tabId)
+    try {
+      // Find the tab to update
+      const tabIndex = localTabs.findIndex((tab) => tab.id === tabId)
+      if (tabIndex === -1) {
+        throw new Error('Tab not found')
+      }
+
+      // Validate and update interval if provided
+      let validatedInterval = localTabs[tabIndex].interval
+      if (updates.interval !== undefined) {
+        const interval =
+          typeof updates.interval === 'string' ? parseFloat(updates.interval) : updates.interval
+        validatedInterval =
+          Number.isNaN(interval) || interval < minInterval ? minInterval : Math.round(interval)
+      }
+
+      // Create updated tab
+      const updatedTab: TabSchema = {
+        ...localTabs[tabIndex],
+        ...updates,
+        interval: validatedInterval,
+      }
+
+      // Update tabs array
+      const newTabs = [...localTabs]
+      newTabs[tabIndex] = updatedTab
+      setLocalTabs(newTabs)
+
+      // Save to current session
+      await updateCurrentSessionTabs(newTabs)
+
+      // If rotation is active, restart it with updated tabs
+      if (activeSwitch) {
+        logger.debug('Rotation is active, restarting with updated tabs')
+        await handleCheckedChange(false) // Stop rotation
+        // Use a small timeout to ensure stop is processed
+        setTimeout(() => {
+          Promise.resolve(handleCheckedChange(true)).catch((error) => {
+            logger.error('Error restarting rotation:', error)
+          })
+        }, 100)
+      }
+
+      toast({
+        title: t('toastUpdateSuccess.title'),
+        description: t('toastUpdateSuccess.description'),
+        variant: 'success',
+      })
+
+      return updatedTab
+    } catch (error) {
+      logger.error('Error updating tab:', error)
+      toast({
+        title: t('toastUpdateError.title'),
+        description: t('toastUpdateError.description'),
+        variant: 'destructive',
+      })
+      throw error
+    } finally {
+      setIsUpdating(null)
+    }
+  }
 
   /**
    * Handles form submission for adding a new tab
@@ -180,12 +253,14 @@ export function useHome() {
     isPaused,
     isLoading: sessionsLoading,
     isSaving,
+    isUpdating,
     isDeleting,
     isReordering,
     importTabs,
     importFromPaste,
     exportTabs,
     handleSubmit,
+    updateTab,
     handleDragEnd,
     handleCheckedChange,
     handlePauseResume,

@@ -17,7 +17,11 @@
     "delete": "Deletar",
     "save": "Salvar",
     "saving": "Salvando...",
-    "drag": "Alça de arrastar"
+    "drag": "Alça de arrastar",
+    "edit": "Editar",
+    "update": "Atualizar",
+    "updating": "Atualizando...",
+    "cancel": "Cancelar"
   },
   "keyboard": {
     "shortcut": "Atalho"
@@ -84,6 +88,14 @@
   "toastSaveSuccess": {
     "title": "Aba salva",
     "description": "A aba foi salva com sucesso."
+  },
+  "toastUpdateSuccess": {
+    "title": "Aba atualizada",
+    "description": "A aba foi atualizada com sucesso."
+  },
+  "toastUpdateError": {
+    "title": "Falha ao atualizar",
+    "description": "Ocorreu um erro ao atualizar a aba. Por favor, tente novamente."
   },
   "toastSaveError": {
     "title": "Falha ao salvar",

@@ -404,4 +404,212 @@ describe('useHome', () => {
       })
     })
   })
+
+  describe('updateTab', () => {
+    it('should update tab interval successfully', async () => {
+      const { result } = renderHook(() => useHome())
+
+      await act(async () => {
+        await result.current.updateTab(1, { interval: 15000 })
+      })
+
+      await waitFor(() => {
+        expect(mockSessions.updateCurrentSessionTabs).toHaveBeenCalled()
+        const updateCall = mockSessions.updateCurrentSessionTabs.mock.calls[0]?.[0]
+        if (Array.isArray(updateCall)) {
+          const updatedTab = updateCall.find((tab: TabSchema) => tab.id === 1)
+          expect(updatedTab?.interval).toBe(15000)
+        }
+      })
+    })
+
+    it('should validate interval below minimum when updating', async () => {
+      const { result } = renderHook(() => useHome())
+
+      await act(async () => {
+        await result.current.updateTab(1, { interval: 1000 })
+      })
+
+      await waitFor(() => {
+        const updateCall = mockSessions.updateCurrentSessionTabs.mock.calls[0]?.[0]
+        if (Array.isArray(updateCall)) {
+          const updatedTab = updateCall.find((tab: TabSchema) => tab.id === 1)
+          expect(updatedTab?.interval).toBe(5000) // Should be corrected to minimum
+        }
+      })
+    })
+
+    it('should handle string interval when updating', async () => {
+      const { result } = renderHook(() => useHome())
+
+      await act(async () => {
+        await result.current.updateTab(1, { interval: '20000' as unknown as number })
+      })
+
+      await waitFor(() => {
+        const updateCall = mockSessions.updateCurrentSessionTabs.mock.calls[0]?.[0]
+        if (Array.isArray(updateCall)) {
+          const updatedTab = updateCall.find((tab: TabSchema) => tab.id === 1)
+          expect(updatedTab?.interval).toBe(20000)
+        }
+      })
+    })
+
+    it('should round interval when updating', async () => {
+      const { result } = renderHook(() => useHome())
+
+      await act(async () => {
+        await result.current.updateTab(1, { interval: 12345.6 })
+      })
+
+      await waitFor(() => {
+        const updateCall = mockSessions.updateCurrentSessionTabs.mock.calls[0]?.[0]
+        if (Array.isArray(updateCall)) {
+          const updatedTab = updateCall.find((tab: TabSchema) => tab.id === 1)
+          expect(updatedTab?.interval).toBe(12346) // Rounded
+        }
+      })
+    })
+
+    it('should update tab name', async () => {
+      const { result } = renderHook(() => useHome())
+
+      await act(async () => {
+        await result.current.updateTab(1, { name: 'Updated Name' })
+      })
+
+      await waitFor(() => {
+        const updateCall = mockSessions.updateCurrentSessionTabs.mock.calls[0]?.[0]
+        if (Array.isArray(updateCall)) {
+          const updatedTab = updateCall.find((tab: TabSchema) => tab.id === 1)
+          expect(updatedTab?.name).toBe('Updated Name')
+        }
+      })
+    })
+
+    it('should update tab url', async () => {
+      const { result } = renderHook(() => useHome())
+
+      await act(async () => {
+        await result.current.updateTab(1, { url: 'https://updated.com' })
+      })
+
+      await waitFor(() => {
+        const updateCall = mockSessions.updateCurrentSessionTabs.mock.calls[0]?.[0]
+        if (Array.isArray(updateCall)) {
+          const updatedTab = updateCall.find((tab: TabSchema) => tab.id === 1)
+          expect(updatedTab?.url).toBe('https://updated.com')
+        }
+      })
+    })
+
+    it('should update multiple tab properties at once', async () => {
+      const { result } = renderHook(() => useHome())
+
+      await act(async () => {
+        await result.current.updateTab(1, {
+          name: 'New Name',
+          url: 'https://new.com',
+          interval: 8000,
+        })
+      })
+
+      await waitFor(() => {
+        const updateCall = mockSessions.updateCurrentSessionTabs.mock.calls[0]?.[0]
+        if (Array.isArray(updateCall)) {
+          const updatedTab = updateCall.find((tab: TabSchema) => tab.id === 1)
+          expect(updatedTab?.name).toBe('New Name')
+          expect(updatedTab?.url).toBe('https://new.com')
+          expect(updatedTab?.interval).toBe(8000)
+        }
+      })
+    })
+
+    it('should handle update error gracefully', async () => {
+      const { result } = renderHook(() => useHome())
+
+      mockSessions.updateCurrentSessionTabs.mockRejectedValueOnce(new Error('Update error'))
+
+      await act(async () => {
+        try {
+          await result.current.updateTab(1, { interval: 15000 })
+        } catch {
+          // Expected to throw
+        }
+      })
+
+      await waitFor(() => {
+        expect(result.current.isUpdating).toBe(null)
+      })
+    })
+
+    it('should throw error when tab not found', async () => {
+      const { result } = renderHook(() => useHome())
+
+      await act(async () => {
+        try {
+          await result.current.updateTab(999, { interval: 15000 })
+        } catch (error) {
+          expect(error).toBeDefined()
+          expect((error as Error).message).toBe('Tab not found')
+        }
+      })
+    })
+
+    it('should restart rotation when updating tab interval while rotation is active', async () => {
+      mockUseRotationControl.mockReturnValue({
+        ...mockRotationControl,
+        activeSwitch: true,
+      } as ReturnType<typeof useRotationControl>)
+
+      const { result } = renderHook(() => useHome())
+
+      await act(async () => {
+        await result.current.updateTab(1, { interval: 15000 })
+      })
+
+      // Wait for the restart sequence
+      await waitFor(
+        () => {
+          expect(mockRotationControl.handleCheckedChange).toHaveBeenCalledWith(false)
+        },
+        { timeout: 3000 }
+      )
+    })
+
+    it('should set isUpdating state during update', async () => {
+      const { result } = renderHook(() => useHome())
+
+      let resolveUpdate: (() => void) | undefined
+      const pendingUpdate = new Promise<void>((resolve) => {
+        resolveUpdate = resolve
+      })
+      mockSessions.updateCurrentSessionTabs.mockReturnValueOnce(pendingUpdate)
+
+      let updatePromise!: Promise<unknown>
+
+      // Start the update without waiting for completion
+      act(() => {
+        updatePromise = result.current.updateTab(1, { interval: 15000 })
+      })
+
+      // Check that isUpdating is set
+      await waitFor(() => {
+        expect(result.current.isUpdating).toBe(1)
+      })
+
+      // Finish pending update
+      resolveUpdate?.()
+
+      // Wait for completion
+      await act(async () => {
+        await updatePromise
+      })
+
+      // Check that isUpdating is cleared
+      await waitFor(() => {
+        expect(result.current.isUpdating).toBe(null)
+      })
+    })
+  })
 })

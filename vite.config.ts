@@ -3,14 +3,12 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
-import tsconfigPaths from 'vite-tsconfig-paths'
 import { backgroundBundlePlugin } from './vite-plugins/background-bundle'
 
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    tsconfigPaths(),
     backgroundBundlePlugin(),
     viteStaticCopy({
       targets: [
@@ -87,6 +85,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
   },
   resolve: {
+    tsconfigPaths: true,
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
