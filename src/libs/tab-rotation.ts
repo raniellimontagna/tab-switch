@@ -167,7 +167,7 @@ export function rotateTabs(tabs: TabWithInterval[]): (() => void) | undefined {
     }
 
     const tab = currentTabs[currentIndex]
-    if (!tab || !tab.id) {
+    if (!tab?.id) {
       logger.error(`Invalid tab at index ${currentIndex}. Skipping.`)
       const nextIndex = currentIndex === currentTabs.length - 1 ? 0 : currentIndex + 1
       rotationState.setCurrentIndex(nextIndex)
