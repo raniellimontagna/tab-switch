@@ -113,3 +113,30 @@ src/
 
 - **Code / Comments / Variables**: English.
 - **UI / User-facing text**: Portuguese (PT-BR) via i18next.
+
+## 12. Workflow
+
+1. Fork the repository and clone your fork.
+2. Install dependencies with `pnpm install` and the git hooks with `pnpm prepare` (Lefthook runs Biome and the type-check before each commit, and a full check plus a build before each push).
+3. Create a branch such as `feat/my-feature` or `fix/my-fix`.
+4. Make your change, add tests where possible and make sure `pnpm build` passes.
+5. Commit with [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:` and so on) and open a pull request against `main`.
+
+## 13. Debugging and Troubleshooting
+
+- **Popup:** open the popup, right-click it and choose **Inspect**.
+- **Background service worker:** on `chrome://extensions/`, click **Service worker** on the extension card.
+- **Logs:** the logger is verbose in development builds; build with `VITE_DEBUG=true pnpm build` to keep it on in production builds.
+- **No hot reload:** after a change, run `pnpm build` and click the reload icon on the extension card.
+- **The extension does not load:** make sure you built it and selected the `build/` folder, not `src/`. Errors show under **Details > Errors** on the extension card.
+- **Tabs are not created or managed:** check that `public/manifest.json` still has the `tabs` permission, then reload the extension.
+- **Translations missing:** run `pnpm validate:translations` and check that `build/locales/` was generated.
+- **Corrupted settings:** in the popup DevTools, run `chrome.storage.local.clear()` to reset the stored data.
+- **Build fails after a dependency change:** remove `node_modules` and `build`, then run `pnpm install` and `pnpm build` again.
+
+## 14. Releases
+
+Versions follow [Semantic Versioning](https://semver.org/) and are managed by [release-please](https://github.com/googleapis/release-please):
+
+- `feat:` bumps the minor version, `fix:` the patch version, and `feat!:` or `fix!:` (breaking changes) the major version. Other types do not create a release.
+- On every push to `main`, release-please opens or updates a release pull request with the new version and the `CHANGELOG.md` entries. Merging it creates the tag and the GitHub release.
