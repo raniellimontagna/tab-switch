@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1](https://github.com/raniellimontagna/tab-switch/compare/tab-switch-v1.3.0...tab-switch-v1.3.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies to clear open Dependabot alerts ([#16](https://github.com/raniellimontagna/tab-switch/issues/16)) ([99c9989](https://github.com/raniellimontagna/tab-switch/commit/99c998991b338fcdbe88837ae7abe405e7263517))
+* update dependencies to resolve 14 pnpm audit vulnerabilities ([aa3013f](https://github.com/raniellimontagna/tab-switch/commit/aa3013fe833de5bcb6e260087f5b5cd95b744fe7))
+
 ## [1.3.0](https://github.com/raniellimontagna/tab-switch/compare/tab-switch-v1.2.0...tab-switch-v1.3.0) (2026-03-19)
 
 
